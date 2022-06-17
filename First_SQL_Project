@@ -1,0 +1,129 @@
+-- DATA extracted from Kaggle, 'Predicting Employee Attrition'
+-- DATA retrieved on 6/12/2022
+
+
+
+-- Below I began by creating a table with the values from the CVS file, and I imported into PgAdmin
+
+CREATE TABLE sample3(
+Emp_ID INTEGER,
+Date_Record	TIMESTAMP,
+Age INTEGER,
+Gender VARCHAR(10),
+City VARCHAR(5),
+Education_Level VARCHAR (10),
+Salary BIGINT,
+Date_Of_Joining TIMESTAMP,
+Last_WorkingDate TIMESTAMP,
+Joining_Designation	INTEGER,
+Designation	INTEGER,
+Total_Business_Value BIGINT,	
+Quarterly_Rating INTEGER
+)
+
+
+
+-- Cleaning up data because there are duplicate employee ID rows
+
+
+
+SELECT COUNT(emp_id) FROM sample3;
+-- There are 19104 records of employee ID
+
+
+SELECT COUNT (DISTINCT emp_id) FROM sample3; 
+-- There are actually 2,381 employees in this dataset 
+
+
+
+DELETE FROM sample3 WHERE emp_id IN(
+SELECT emp_id FROM
+(SELECT emp_id, 
+ROW_NUMBER() OVER (PARTITION BY emp_id ORDER BY date_record DESC) AS row_num
+FROM sample3)
+A WHERE row_num> 1); 
+-- Removed duplicate files employee IDs
+-- This part was hard to work around because I wanted to keep latest 'last_workingdate' where employees quit
+-- Result of the code ended with more of my sample getting removed 
+-- Open for feedbacks around this coding
+
+
+
+
+
+SELECT ROUND(avg(salary),2) FROM sample3 
+-- Average salary $49,901.60
+
+
+-- Examining high earners 
+WITH temporaryTable(averageValue) AS
+(SELECT avg(salary) FROM sample3)
+SELECT emp_id, salary, last_workingdate
+FROM sample3, temporaryTable
+WHERE salary > temporaryTable.averageValue; 
+-- 88 employees make above the average 
+ 
+SELECT COUNT(last_workingdate) FROM sample3
+WHERE salary > 49901.60; 
+-- 36/88=40.90% employees left making above average 
+
+SELECT gender, COUNT(gender) FROM sample3
+WHERE salary > 49901.60
+GROUP BY gender; 
+-- Ratio of 50:38, men to women making above average
+
+
+-- Examining low earners 
+WITH temporaryTable(averageValue) AS
+(SELECT avg(salary) FROM sample3)
+SELECT emp_id, salary, last_workingdate
+FROM sample3, temporaryTable
+WHERE salary < temporaryTable.averageValue; 
+-- 93 employees make less than the average 
+
+
+SELECT COUNT(last_workingdate) FROM sample3
+WHERE salary < 49901.60;
+-- 66/93=70.96% employees left making below average 
+
+
+SELECT gender, COUNT(gender) FROM sample3
+WHERE salary < 49901.60
+GROUP BY gender; 
+-- 60:33 men to women ratio making below average 
+
+-- Exploring education level 
+SELECT education_level, COUNT(education_level) FROM sample3
+GROUP BY education_level; 
+-- Bachelor (57), Master (55), College (69)
+
+WITH tempTable(avgValues) AS 
+(SELECT ROUND(AVG(salary),2) FROM sample3)
+SELECT COUNT(education_level)
+FROM sample3, tempTable
+WHERE salary > tempTable.avgValues AND education_level = 'Bachelor'; 
+-- 25/57 (43.86%) holding a Bachelors degree make > avg 
+
+WITH tempTable(avgValues) AS 
+(SELECT ROUND(AVG(salary),2) FROM sample3)
+SELECT COUNT(education_level)
+FROM sample3, tempTable
+WHERE salary > tempTable.avgValues AND education_level = 'Master'; 
+-- 34/55 (61.82%) holding a Masters degree make > avg
+
+WITH tempTable(avgValues) AS 
+(SELECT ROUND(AVG(salary),2) FROM sample3)
+SELECT COUNT(education_level)
+FROM sample3, tempTable
+WHERE salary > tempTable.avgValues AND education_level = 'College' 
+-- 29/69 (36.23%) holding a College degree make > avg
+
+
+
+
+-- Conclusions:
+-- Employees making above avg are likely to stay (40.90% v. 70.96%)
+-- Women earning above avg is > than below avg earners (43.18% v. 35.48%)
+-- Men earning above avg is < than below avg earners (56.81% v. 64.51%)
+
+

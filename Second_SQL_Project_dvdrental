@@ -3,14 +3,14 @@
 
 -- Looking for top performer. Which of the staff sold the most? 
 
-/* 
+
 SELECT staff.staff_id, staff.first_name, staff.last_name, SUM(payment.amount) AS total_sales 
 FROM staff
 JOIN payment
 ON staff.staff_id = payment.staff_id
 GROUP BY staff.staff_id
 ORDER BY SUM(payment.amount) DESC; 
-*/
+
 
 -- In the results, we find that Jon Stephens sold over $31,059.92 while Mike Hillyer made of $30,252.12 --
 
@@ -20,7 +20,7 @@ ORDER BY SUM(payment.amount) DESC;
 
 -- Looking at top paying customer
 
-/*
+
 SELECT 
 customer.first_name, 
 customer.last_name, 
@@ -30,7 +30,7 @@ JOIN payment
 ON customer.customer_id = payment.customer_id
 GROUP BY customer.first_name, customer.last_name
 ORDER BY SUM(payment.amount) DESC;
-*/
+
 
 -- Top client, Eleanor Hunt for the amount of $211.55 --
 
@@ -40,7 +40,7 @@ ORDER BY SUM(payment.amount) DESC;
 
 -- Which district spends the most at the DVD rental company? 
 
-/*
+
 SELECT 
 address.district,
 SUM(payment.amount) 
@@ -51,7 +51,7 @@ JOIN payment
 ON customer.customer_id = payment.customer_id
 GROUP BY address.district
 ORDER BY SUM(payment.amount) DESC;
-*/
+
 
 -- Buenos Aires is the district that is most profitable --
 
@@ -63,7 +63,7 @@ ORDER BY SUM(payment.amount) DESC;
 -- payment_date originally coded as a TIMESTAMP,  EXTRACT() was used to get Month in order
 -- to capture monthly sales 
 
-/*
+
 SELECT
 EXTRACT(MONTH FROM payment_date) AS month,
 SUM(payment.amount) as total_sales
@@ -72,7 +72,7 @@ JOIN payment
 ON staff.staff_id = payment.staff_id
 GROUP BY EXTRACT(MONTH FROM payment_date)
 ORDER BY SUM(payment.amount) DESC;
-*/
+
 
 -- Based on the findings, March and April were peak sales, with May being the lowest -- 
 

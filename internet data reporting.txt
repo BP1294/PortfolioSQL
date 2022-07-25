@@ -1,0 +1,169 @@
+CREATE DATABASE internet;
+
+USE internet;
+
+CREATE TABLE avg_speed
+(
+Country VARCHAR(255),
+Average DECIMAL(5,2)
+);
+
+
+CREATE TABLE users
+(
+Country	VARCHAR(255),
+Subregion VARCHAR(255),
+Region VARCHAR(255),
+Internet_users BIGINT,	
+Population BIGINT
+);
+
+
+CREATE TABLE prices
+(
+Country_code VARCHAR(10),
+Country_Name VARCHAR(255),
+Cont_Region VARCHAR(255),
+Num_Int_Plans INT,
+Avg_P_1G DECIMAL(4,2) NULL,
+Cheapest_1G DECIMAL(4,2) NULL,
+Most_Exp_1G DECIMAL(4,2) NULL,
+Avg_Price_2021 DECIMAL(4,2) NULL,
+Avg_Price_2022 DECIMAL(4,2) NULL
+);
+
+
+____________________________________________________________________________________________________________________________________
+
+
+mysql> use internet;
+Database changed
+mysql> desc prices;
++----------------+--------------+------+-----+---------+-------+
+| Field          | Type         | Null | Key | Default | Extra |
++----------------+--------------+------+-----+---------+-------+
+| Country_code   | varchar(10)  | YES  |     | NULL    |       |
+| Country        | varchar(255) | YES  |     | NULL    |       |
+| Cont_Region    | varchar(255) | YES  |     | NULL    |       |
+| Num_Int_Plans  | int          | YES  |     | NULL    |       |
+| Avg_P_1G       | decimal(4,2) | YES  |     | NULL    |       |
+| Cheapest_1G    | decimal(4,2) | YES  |     | NULL    |       |
+| Most_Exp_1G    | decimal(4,2) | YES  |     | NULL    |       |
+| Avg_Price_2021 | decimal(4,2) | YES  |     | NULL    |       |
+| Avg_Price_2022 | decimal(4,2) | YES  |     | NULL    |       |
++----------------+--------------+------+-----+---------+-------+
+9 rows in set (0.00 sec)
+
+mysql> desc users;
++----------------+--------------+------+-----+---------+-------+
+| Field          | Type         | Null | Key | Default | Extra |
++----------------+--------------+------+-----+---------+-------+
+| Country        | varchar(255) | YES  |     | NULL    |       |
+| Subregion      | varchar(255) | YES  |     | NULL    |       |
+| Region         | varchar(255) | YES  |     | NULL    |       |
+| Internet_users | bigint       | YES  |     | NULL    |       |
+| Population     | bigint       | YES  |     | NULL    |       |
++----------------+--------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql> desc avg_speed;
++---------+--------------+------+-----+---------+-------+
+| Field   | Type         | Null | Key | Default | Extra |
++---------+--------------+------+-----+---------+-------+
+| Country | varchar(255) | YES  |     | NULL    |       |
+| Average | decimal(5,2) | YES  |     | NULL    |       |
++---------+--------------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT u.country AS Country,
+    -> FORMAT(u.internet_users, 'N') AS 'Internet Users',
+    -> u.population AS Population
+    -> FROM users u
+    -> JOIN prices p
+    -> WHERE u.country = p.country
+    -> ORDER BY population DESC
+    -> LIMIT 10;
++---------------+----------------+------------+
+| Country       | Internet Users | Population |
++---------------+----------------+------------+
+| China         | 1,010,740,000  | 1427647786 |
+| India         | 833,710,000    | 1352642280 |
+| United States | 312,320,000    |  327096265 |
+| Indonesia     | 196,000,000    |  267670543 |
+| Pakistan      | 118,800,000    |  213756286 |
+| Brazil        | 160,010,801    |  209469323 |
+| Nigeria       | 136,203,231    |  195874685 |
+| Bangladesh    | 129,180,000    |  166303498 |
+| Mexico        | 92,010,000     |  128972439 |
+| Japan         | 117,400,000    |  127202192 |
++---------------+----------------+------------+
+10 rows in set, 183 warnings (0.00 sec)
+
+mysql> SELECT Country, Avg_Price_2021, Avg_Price_2022,
+    -> ROUND((Avg_Price_2022 - Avg_Price_2021)/Avg_Price_2021*100,2) as '% Change'
+    -> FROM prices
+    -> ORDER BY 4 DESC
+    -> LIMIT 10;
++-----------+----------------+----------------+----------+
+| Country   | Avg_Price_2021 | Avg_Price_2022 | % Change |
++-----------+----------------+----------------+----------+
+| Nicaragua |           1.71 |          65.83 |  3749.71 |
+| Djibouti  |           1.12 |          37.92 |  3285.71 |
+| China     |           0.61 |           9.89 |  1521.31 |
+| Ukraine   |           0.46 |           5.93 |  1189.13 |
+| Somalia   |           0.50 |           6.19 |  1138.00 |
+| Burundi   |           2.12 |          18.79 |   786.32 |
+| Israel    |           0.11 |           0.90 |   718.18 |
+| Algeria   |           0.65 |           5.15 |   692.31 |
+| Niger     |           3.30 |          25.52 |   673.33 |
+| Cambodia  |           1.50 |          10.18 |   578.67 |
++-----------+----------------+----------------+----------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT Subregion,
+    -> SUM(Internet_users) AS '# of Users',
+    -> sum(population) AS 'Population'
+    -> FROM users
+    -> GROUP BY Subregion
+    -> ORDER BY SUM(Internet_users) DESC
+    -> LIMIT 10;
++--------------------+------------+------------+
+| Subregion          | # of Users | Population |
++--------------------+------------+------------+
+| Eastern Asia       | 1207314413 | 1640921726 |
+| Southern Asia      | 1109733568 | 1820468546 |
+| South-eastern Asia |  445711867 |  655298440 |
+| Northern America   |  438380223 |  493252586 |
+| South America      |  296678699 |  423298140 |
+| Eastern Europe     |  237234697 |  293790259 |
+| Southern Europe    |  196060313 |  234976860 |
+| Western Asia       |  193920043 |  265628887 |
+| Western Africa     |  181313395 |  381202451 |
+| Western Europe     |  179433510 |  194754503 |
++--------------------+------------+------------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT u.country AS 'Country', u.subregion AS 'Subregion',
+    -> p.Cheapest_1G AS '1G plans'
+    -> FROM prices p
+    -> JOIN users u
+    -> 	ON p.Country = u.Country
+    -> WHERE p.Cheapest_1G < (SELECT AVG(p.cheapest_1g)
+    ->                          FROM users u
+    ->                          JOIN prices p
+    ->                                  ON u.country = p.country
+    ->                          WHERE u.subregion = 'Eastern Asia')
+    -> AND p.cheapest_1g <> 0
+    -> AND subregion = 'Eastern Asia'
+    -> ORDER BY p.Cheapest_1G DESC;
++-------------+--------------+----------+
+| Country     | Subregion    | 1G plans |
++-------------+--------------+----------+
+| China       | Eastern Asia |     0.30 |
+| Mongolia    | Eastern Asia |     0.22 |
+| South Korea | Eastern Asia |     0.06 |
++-------------+--------------+----------+
+3 rows in set (0.00 sec)
+
+
+
